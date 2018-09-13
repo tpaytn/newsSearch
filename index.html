@@ -82,6 +82,8 @@
               placeholder="Enter search term"
               style={{
                 height: "36px",
+                width: "380px",
+                marginTop: "10px",
                 padding: "0 6px",
                 border: "none",
               }}
@@ -96,7 +98,11 @@
         // Root component
         return (
           <div style={{ padding: "10px" }}>
-            <SearchInput onValueChange={props.setSearchString} />
+            <div style={{ width: "400px" }}>
+              <h1>WELCOME TO POPULAR NEWS</h1>
+              <h2>Enter your search in the box below to see news results sorted by popularity!</h2>
+              <SearchInput onValueChange={props.setSearchString} />
+            </div>
           </div>
         );
       };
