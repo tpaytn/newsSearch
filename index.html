@@ -33,7 +33,7 @@
       // ----------------------------------------------------------------------
       // HTTP requests and responses
 
-      const doRequest = (method, url) => new Promise(
+      const doGetRequest = (url) => new Promise(
         (res, rej) => {
           const httpRequest = new XMLHttpRequest();
           httpRequest.onload = () => {
@@ -44,7 +44,7 @@
             }
           };
           httpRequest.onerror = () => rej(Error(httpRequest.statusText));
-          httpRequest.open(method, url);
+          httpRequest.open("GET", url);
           httpRequest.setRequestHeader("X-Api-Key", "b4e9b1b5bde5460d8e50d4ca7ce30fd1");
           httpRequest.send();
         }
@@ -53,13 +53,51 @@
       // Request handling
       const URL = "https://newsapi.org/v2/everything";
 
-      const getArticles = (searchString) =>
-        doRequest("GET", `${URL}?q=${searchString}&sortBy=popularity`)
-          .then((res) => update("articles", JSON.parse(res).articles))
+      const getArticles = (searchString, page) =>
+        doGetRequest(`${URL}?q=${searchString}&page=${page}&sortBy=popularity`)
+          .then((res) => {
+            const parsed = JSON.parse(res);
+            update("totalResults", parsed.totalResults);
+            update("articles", parsed.articles);
+          })
           .catch((e) => console.log(e));
 
       // ----------------------------------------------------------------------
       // Components
+
+      const Button = (props) => (
+        <button
+          style={{
+            borderWidth: "0",
+            borderStyle: "solid",
+            borderRadius: "8px",
+            cursor: "pointer",
+          }}
+          onClick={props.onClick}
+        >
+          {props.children}
+        </button>
+      );
+
+      const Navigation = (props) => (
+        <div style={{
+          display: "flex",
+          justifyContent: props.firstPage ? "flex-end" : "space-between",
+          width: "440px",
+          marginTop: "6px",
+        }}>
+          {!props.firstPage ?
+            <Button onClick={props.onClickPrev}>prev</Button>
+            :
+            null
+          }
+          {!props.lastPage ?
+            <Button onClick={props.onClickNext}>next</Button>
+            :
+            null
+          }
+        </div>
+      );
 
       class SearchInput extends React.Component {
         constructor(props) {
@@ -80,7 +118,7 @@
               type="text"
               value={this.state.value}
               onChange={this.onChange}
-              onKeyPress={(event) => event.key === "Enter" && this.props.onSubmit()}
+              onKeyPress={(event) => event.key === "Enter" && this.props.onEnter()}
               placeholder="Enter search term"
               style={{
                 height: "36px",
@@ -123,16 +161,34 @@
             hour12: true
           });
 
+        // Edge case: if the total number of articles is a multiple of 20, then
+        //   'next' will show, but clicking it will display an empty page
+        const Nav = ( props.articles.length > 0 ?
+          <Navigation
+            firstPage={props.page <= 1}
+            lastPage={props.articles.length < 20}
+            onClickPrev={props.onClickPrev}
+            onClickNext={props.onClickNext}
+          />
+          :
+          null
+        );
+
         // Root component
         return (
           <div style={{ padding: "10px" }}>
             <div style={{ width: "400px" }}>
               <h1>WELCOME TO POPULAR NEWS</h1>
               <h2>Enter your search in the box below to see news results sorted by popularity!</h2>
-              <SearchInput onValueChange={props.setSearchString} onSubmit={onSubmit} />
+              <SearchInput
+                onValueChange={props.setSearchString}
+                onEnter={props.onSearch}
+              />
+              {Nav}
               {props.articles.map((e) => (
                 <Article {...e} date={processDate(e.publishedAt)}/>
               ))}
+              {Nav}
             </div>
           </div>
         );
@@ -146,22 +202,37 @@
         renderMain();
       };
 
-      const onSubmit = () => {
+      const submitSearch = () => {
         const trimmed = appState.searchString.trim();
         if (trimmed !== "") {
-          getArticles(trimmed);
+          getArticles(trimmed, appState.page);
         }
       }
+
+      const makeNavClickHandler = (num) =>
+        () => {
+          update("page", appState.page + num);
+          submitSearch();
+        };
+
+      const onSearch = () => {
+        update("page", 1);
+        submitSearch();
+      };
 
       // State
       const appState = {
         // state data
         searchString: "",
         articles: [],
+        totalResults: 0,
+        page: 1,
 
         // callback functions
         setSearchString: (data) => update("searchString", data),
-        onSubmit,
+        onSearch,
+        onClickPrev: makeNavClickHandler(-1),
+        onClickNext: makeNavClickHandler(1),
       };
 
 
