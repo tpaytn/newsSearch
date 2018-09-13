@@ -12,6 +12,7 @@
                    user-scalable=no" />
     <meta name="HandheldFriendly"
           content="true" />
+    <link rel="stylesheet" type="text/css" href="style.css">
     <script crossorigin src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/es7-shim/6.0.0/es7-shim.min.js"></script>
@@ -54,7 +55,7 @@
 
       const getArticles = (searchString) =>
         doRequest("GET", `${URL}?q=${searchString}&sortBy=popularity`)
-          .then((res) => console.log(JSON.parse(res)))
+          .then((res) => update("articles", JSON.parse(res).articles))
           .catch((e) => console.log(e));
 
       // ----------------------------------------------------------------------
@@ -93,8 +94,27 @@
         }
       }
 
+      const Article = (props) => (
+        <div style={{
+          width: "100%",
+          marginTop: "10px",
+          padding: "20px",
+          background: "#DDD",
+        }}>
+          <a href={props.url} target="_blank">
+            <h2 style={{ marginTop: "0" }}>{props.title}</h2>
+            <h4>{props.author}</h4>
+            <img width="100%" src={props.urlToImage}></img>
+            <p>{props.description}</p>
+          </a>
+        </div>
+      );
+
       const Main = (props) => {
         // State processing and data transformation
+
+        // Not working, postpone till later:
+        // const processDate = (publishedAt) => new Date(publishedAt).toString();
 
         // Root component
         return (
@@ -103,6 +123,9 @@
               <h1>WELCOME TO POPULAR NEWS</h1>
               <h2>Enter your search in the box below to see news results sorted by popularity!</h2>
               <SearchInput onValueChange={props.setSearchString} onSubmit={onSubmit} />
+              {props.articles.map((e) => (
+                <Article {...e} />
+              ))}
             </div>
           </div>
         );
@@ -127,6 +150,7 @@
       const appState = {
         // state data
         searchString: "",
+        articles: [],
 
         // callback functions
         setSearchString: (data) => update("searchString", data),
