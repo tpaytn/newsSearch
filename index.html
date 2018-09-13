@@ -23,7 +23,7 @@
     style="
       margin: 0;
       padding: 0;
-      background: #44537A;
+      background: #66AAFF;
       font-family: 'Helvetica Neue', Helvetica, sans-serif;
       font-size: 0.8rem;
     "
@@ -44,16 +44,51 @@
           };
           httpRequest.onerror = () => rej(Error(httpRequest.statusText));
           httpRequest.open(method, url);
+          httpRequest.setRequestHeader("X-Api-Key", "b4e9b1b5bde5460d8e50d4ca7ce30fd1");
           httpRequest.send();
         }
       );
 
       // Request handling
-      const URL = "https://newsapi.org/v2/";
+      const URL = "https://newsapi.org/v2/everything";
 
+      const getArticles = (searchString) =>
+        doRequest("GET", `${URL}?q=${searchString}&sortBy=popularity`)
+          .then((res) => console.log(JSON.parse(res)))
+          .catch((e) => console.log(e));
 
       // ----------------------------------------------------------------------
       // Components
+
+      class SearchInput extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = { value: "" };
+          this.onChange = this.onChange.bind(this);
+        }
+
+        onChange(event) {
+          const value = event.target.value;
+          this.setState({ value });
+          this.props.onValueChange(value);
+        }
+
+        render() {
+          return (
+            <input
+              type="text"
+              value={this.state.value}
+              onChange={this.onChange}
+              placeholder="Enter search term"
+              style={{
+                height: "36px",
+                padding: "0 6px",
+                border: "none",
+              }}
+            />
+          );
+        }
+      }
 
       const Main = (props) => {
         // State processing and data transformation
@@ -61,7 +96,7 @@
         // Root component
         return (
           <div style={{ padding: "10px" }}>
-
+            <SearchInput onValueChange={props.setSearchString} />
           </div>
         );
       };
@@ -77,8 +112,10 @@
       // State
       const appState = {
         // state data
+        searchString: "",
 
         // callback functions
+        setSearchString: (data) => update("searchString", data),
 
       };
 
