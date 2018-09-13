@@ -104,6 +104,7 @@
           <a href={props.url} target="_blank">
             <h2 style={{ marginTop: "0" }}>{props.title}</h2>
             <h4>{props.author}</h4>
+            <h4>{props.date}</h4>
             <img width="100%" src={props.urlToImage}></img>
             <p>{props.description}</p>
           </a>
@@ -112,9 +113,15 @@
 
       const Main = (props) => {
         // State processing and data transformation
-
-        // Not working, postpone till later:
-        // const processDate = (publishedAt) => new Date(publishedAt).toString();
+        const processDate = (e) =>
+          new Date(e).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year:"numeric",
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true
+          });
 
         // Root component
         return (
@@ -124,7 +131,7 @@
               <h2>Enter your search in the box below to see news results sorted by popularity!</h2>
               <SearchInput onValueChange={props.setSearchString} onSubmit={onSubmit} />
               {props.articles.map((e) => (
-                <Article {...e} />
+                <Article {...e} date={processDate(e.publishedAt)}/>
               ))}
             </div>
           </div>
