@@ -160,12 +160,10 @@
             hour12: true
           });
 
-        // Edge case: if the total number of articles is a multiple of 20, then
-        //   'next' will show, but clicking it will display an empty page
         const Nav = ( props.articles.length > 0 ?
           <Navigation
             firstPage={props.page <= 1}
-            lastPage={props.articles.length < 20}
+            lastPage={props.totalResults <= props.page * 20}
             onClickPrev={props.onClickPrev}
             onClickNext={props.onClickNext}
           />
